@@ -2,76 +2,444 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Product Finder Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShopSavvy - Smart Product Finder</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    :root {
+      --primary: #4361ee;
+      --primary-light: #e0e7ff;
+      --secondary: #3f37c9;
+      --success: #4cc9f0;
+      --text: #2b2d42;
+      --text-light: #8d99ae;
+      --bg: #f8f9fa;
+      --card-bg: #ffffff;
+      --user-bubble: #4361ee;
+      --bot-bubble: #f1f3f5;
+      --shadow: 0 1px 3px rgba(0,0,0,0.12);
+      --header-bg: #ffffff;
+      --input-bg: #f8f9fa;
+      --border-color: #e9ecef;
+    }
+    
+    /* Dark mode variables */
+    [data-theme="dark"] {
+      --primary: #4895ef;
+      --primary-light: #1a2a4a;
+      --secondary: #3f37c9;
+      --success: #4cc9f0;
+      --text: #f8f9fa;
+      --text-light: #adb5bd;
+      --bg: #121212;
+      --card-bg: #1e1e1e;
+      --user-bubble: #4895ef;
+      --bot-bubble: #2d2d2d;
+      --shadow: 0 1px 3px rgba(0,0,0,0.5);
+      --header-bg: #1a1a1a;
+      --input-bg: #2d2d2d;
+      --border-color: #333333;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+    
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f0f0f0;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
       display: flex;
       flex-direction: column;
       height: 100vh;
       margin: 0;
+      line-height: 1.5;
     }
+    
+    header {
+      background: var(--header-bg);
+      padding: 16px 20px;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .logo-icon {
+      color: var(--primary);
+      font-size: 24px;
+    }
+    
+    .logo-text {
+      font-weight: 600;
+      font-size: 18px;
+    }
+    
+    .theme-toggle {
+      background: none;
+      border: none;
+      color: var(--text-light);
+      font-size: 20px;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .theme-toggle:hover {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+    
     #chat-container {
       flex: 1;
       padding: 20px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 16px;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxkZWZzPjxwYXR0ZXJuIGlkPSJwYXR0ZXJuIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHBhdHRlcm5UcmFuc2Zvcm09InJvdGF0ZSg0NSkiPjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0icmdiYSgyNDAsMjQwLDI0MCwxKSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNwYXR0ZXJuKSIgb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==');
     }
+    
+    [data-theme="dark"] #chat-container {
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxkZWZzPjxwYXR0ZXJuIGlkPSJwYXR0ZXJuIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHBhdHRlcm5UcmFuc2Zvcm09InJvdGF0ZSg0NSkiPjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0icmdiYSg1MCw1MCw1MCwxKSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNwYXR0ZXJuKSIgb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==');
+    }
+    
     .bubble {
-      max-width: 75%;
-      padding: 12px;
+      max-width: 85%;
+      padding: 12px 16px;
       border-radius: 16px;
-      font-size: 14px;
+      font-size: 15px;
       line-height: 1.5;
+      position: relative;
+      box-shadow: var(--shadow);
+      animation: fadeIn 0.3s ease-out;
     }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
     .user {
       align-self: flex-end;
-      background-color: #007bff;
+      background-color: var(--user-bubble);
       color: white;
+      border-bottom-right-radius: 4px;
     }
+    
     .bot {
       align-self: flex-start;
-      background-color: #e5e5ea;
-      color: black;
+      background-color: var(--bot-bubble);
+      color: var(--text);
+      border-bottom-left-radius: 4px;
     }
+    
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      padding: 12px 16px;
+      background-color: var(--bot-bubble);
+      border-radius: 16px;
+      width: fit-content;
+      align-self: flex-start;
+      box-shadow: var(--shadow);
+    }
+    
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--text-light);
+      border-radius: 50%;
+      animation: typingAnimation 1.4s infinite ease-in-out;
+    }
+    
+    .typing-dot:nth-child(1) { animation-delay: 0s; }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    
+    @keyframes typingAnimation {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-5px); }
+    }
+    
     #input-area {
       display: flex;
-      padding: 10px;
-      background: white;
+      padding: 12px 16px;
+      background: var(--header-bg);
+      box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+      gap: 10px;
+      border-top: 1px solid var(--border-color);
     }
-    input {
+    
+    .input-wrapper {
       flex: 1;
-      padding: 10px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+      position: relative;
+      display: flex;
+      align-items: center;
     }
+    
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      padding-right: 40px;
+      font-size: 15px;
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      background: var(--input-bg);
+      color: var(--text);
+      transition: all 0.2s;
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: var(--card-bg);
+      box-shadow: 0 0 0 2px var(--primary-light);
+    }
+    
+    .input-icon {
+      position: absolute;
+      right: 16px;
+      color: var(--text-light);
+      cursor: pointer;
+    }
+    
     button {
-      margin-left: 10px;
-      padding: 10px 15px;
-      font-size: 16px;
+      padding: 0 20px;
+      font-size: 15px;
       border: none;
-      border-radius: 8px;
-      background-color: #28a745;
+      border-radius: 24px;
+      background-color: var(--primary);
       color: white;
       cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    button:hover {
+      background-color: var(--secondary);
+      transform: translateY(-1px);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    .product-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 8px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border-color);
+    }
+    
+    .product-title {
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+    
+    .product-price {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    
+    .current-price {
+      font-weight: 600;
+      color: var(--primary);
+    }
+    
+    .original-price {
+      text-decoration: line-through;
+      color: var(--text-light);
+      font-size: 14px;
+    }
+    
+    .product-link {
+      display: inline-block;
+      padding: 6px 12px;
+      background: var(--primary);
+      color: white;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+      margin-top: 8px;
+    }
+    
+    .product-link:hover {
+      background: var(--secondary);
+      transform: translateY(-1px);
+    }
+    
+    .product-link:active {
+      transform: translateY(0);
+    }
+    
+    .suggestion-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    
+    .suggestion-chip {
+      padding: 6px 12px;
+      background: var(--primary-light);
+      color: var(--primary);
+      border-radius: 16px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+    
+    .suggestion-chip:hover {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .welcome-message {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .welcome-icon {
+      font-size: 48px;
+      color: var(--primary);
+      margin-bottom: 16px;
+    }
+    
+    .welcome-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    
+    .welcome-text {
+      color: var(--text-light);
+      margin-bottom: 20px;
+    }
+    
+    @media (max-width: 600px) {
+      .bubble {
+        max-width: 90%;
+      }
+      
+      #input-area {
+        padding: 10px 12px;
+      }
+      
+      button {
+        padding: 0 16px;
+      }
+      
+      .desktop-text {
+        display: none;
+      }
+      
+      .theme-toggle {
+        width: 36px;
+        height: 36px;
+        font-size: 18px;
+      }
     }
   </style>
 </head>
 <body>
 
-<div id="chat-container"></div>
+<header>
+  <div class="logo">
+    <i class="fas fa-robot logo-icon"></i>
+    <span class="logo-text">ShopSavvy</span>
+  </div>
+  <button class="theme-toggle" id="themeToggle">
+    <i class="fas fa-moon"></i>
+  </button>
+</header>
+
+<div id="chat-container">
+  <div class="welcome-message">
+    <div class="welcome-icon">
+      <i class="fas fa-search-dollar"></i>
+    </div>
+    <h1 class="welcome-title">Find the Best Products & Deals</h1>
+    <p class="welcome-text">Ask me to find any product and I'll search across multiple stores to find you the best options available.</p>
+    <div class="suggestion-chips">
+      <button class="suggestion-chip" onclick="useSuggestion('wireless headphones under $100')">Headphones under $100</button>
+      <button class="suggestion-chip" onclick="useSuggestion('4K smart TV 55 inch')">4K Smart TV</button>
+      <button class="suggestion-chip" onclick="useSuggestion('yoga mat eco-friendly')">Eco Yoga Mat</button>
+      <button class="suggestion-chip" onclick="useSuggestion('best laptop for students')">Student Laptop</button>
+    </div>
+  </div>
+</div>
 
 <div id="input-area">
-  <input type="text" id="query" placeholder="Enter product name..." />
-  <button onclick="sendQuery()">Send</button>
+  <div class="input-wrapper">
+    <input type="text" id="query" placeholder="What product are you looking for?" 
+           onkeypress="handleKeyPress(event)" autofocus />
+    <i class="fas fa-paper-plane input-icon" onclick="sendQuery()"></i>
+  </div>
+  <button onclick="sendQuery()">
+    <i class="fas fa-search"></i>
+    <span class="desktop-text">Search</span>
+  </button>
 </div>
 
 <script>
   const chatContainer = document.getElementById("chat-container");
+  const queryInput = document.getElementById("query");
+  const themeToggle = document.getElementById("themeToggle");
+  
+  // Check for saved theme preference or use preferred color scheme
+  const savedTheme = localStorage.getItem('theme') || 
+                    (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  updateThemeIcon(savedTheme);
+
+  // Theme toggle functionality
+  themeToggle.addEventListener('click', () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateThemeIcon(newTheme);
+  });
+
+  function updateThemeIcon(theme) {
+    const icon = themeToggle.querySelector('i');
+    icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+  }
+
+  // Initial greeting
+  setTimeout(() => {
+    addMessage("Hi there! I'm ShopSavvy, your personal shopping assistant. What product would you like me to find for you today?", "bot");
+  }, 1000);
 
   function addMessage(content, sender = "bot") {
     const msg = document.createElement("div");
@@ -81,37 +449,98 @@
     chatContainer.scrollTop = chatContainer.scrollHeight;
   }
 
+  function showTypingIndicator() {
+    const typing = document.createElement("div");
+    typing.className = "typing-indicator";
+    typing.id = "typing-indicator";
+    typing.innerHTML = `
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+    `;
+    chatContainer.appendChild(typing);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+
+  function hideTypingIndicator() {
+    const typing = document.getElementById("typing-indicator");
+    if (typing) typing.remove();
+  }
+
+  function useSuggestion(text) {
+    queryInput.value = text;
+    queryInput.focus();
+  }
+
+  function handleKeyPress(e) {
+    if (e.key === 'Enter') {
+      sendQuery();
+    }
+  }
+
   async function sendQuery() {
-    const input = document.getElementById("query");
-    const query = input.value.trim();
+    const query = queryInput.value.trim();
     if (!query) return;
 
     addMessage(query, "user");
-    input.value = "";
-
-    addMessage("Searching for best deals...", "bot");
+    queryInput.value = "";
+    showTypingIndicator();
 
     try {
+      // Simulate network delay for demo
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       const res = await fetch("http://127.0.0.1:5000/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query })
       });
+      
+      hideTypingIndicator();
+      
       const data = await res.json();
 
       if (data.length === 0) {
-        addMessage("❌ No results found.", "bot");
+        addMessage(`I couldn't find any results for "${query}". Try being more specific or check your spelling.`, "bot");
         return;
       }
 
+      // Add a summary message
+      addMessage(`Here are the best ${data.length} options I found for "${query}":`, "bot");
+      
+      // Display products
       data.forEach((item, index) => {
-        addMessage(`<strong>${index + 1}. ${item.title}</strong><br>
-        Price: ${item.original} (~$${item.price})<br>
-        <a href="${item.url}" target="_blank">View</a>`, "bot");
+        const priceDiff = item.original && item.price ? 
+          `<span class="original-price">$${item.original}</span>` : '';
+        
+        addMessage(`
+          <div class="product-card">
+            <div class="product-title">${index + 1}. ${item.title}</div>
+            <div class="product-price">
+              <span class="current-price">$${item.price || 'N/A'}</span>
+              ${priceDiff}
+            </div>
+            <a href="${item.url}" target="_blank" class="product-link">
+              <i class="fas fa-external-link-alt"></i> View Product
+            </a>
+          </div>
+        `, "bot");
       });
+      
+      // Add follow-up suggestions
+      addMessage(`
+        <div style="margin-top: 8px;">Need anything else?</div>
+        <div class="suggestion-chips">
+          <button class="suggestion-chip" onclick="useSuggestion('${query} under $50')">Under $50</button>
+          <button class="suggestion-chip" onclick="useSuggestion('best rated ${query}')">Best Rated</button>
+          <button class="suggestion-chip" onclick="useSuggestion('${query} on sale')">On Sale</button>
+        </div>
+      `, "bot");
+      
     } catch (e) {
       console.error(e);
-      addMessage("⚠️ Error fetching data.", "bot");
+      hideTypingIndicator();
+      addMessage("⚠️ Sorry, I encountered an error while searching. Please try again later.", "bot");
     }
   }
 </script>

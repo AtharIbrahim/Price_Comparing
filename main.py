@@ -78,6 +78,7 @@ def get_ebay_results(query):
             continue
     return results
 
+
 def get_cheapest_two(all_results):
     return sorted(all_results, key=lambda x: x["price"])[:2]
 
