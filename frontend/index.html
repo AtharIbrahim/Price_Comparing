@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Product Finder Chat</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      margin: 0;
+    }
+    #chat-container {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .bubble {
+      max-width: 75%;
+      padding: 12px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .user {
+      align-self: flex-end;
+      background-color: #007bff;
+      color: white;
+    }
+    .bot {
+      align-self: flex-start;
+      background-color: #e5e5ea;
+      color: black;
+    }
+    #input-area {
+      display: flex;
+      padding: 10px;
+      background: white;
+    }
+    input {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      margin-left: 10px;
+      padding: 10px 15px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #28a745;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div id="chat-container"></div>
+
+<div id="input-area">
+  <input type="text" id="query" placeholder="Enter product name..." />
+  <button onclick="sendQuery()">Send</button>
+</div>
+
+<script>
+  const chatContainer = document.getElementById("chat-container");
+
+  function addMessage(content, sender = "bot") {
+    const msg = document.createElement("div");
+    msg.className = `bubble ${sender}`;
+    msg.innerHTML = content;
+    chatContainer.appendChild(msg);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+
+  async function sendQuery() {
+    const input = document.getElementById("query");
+    const query = input.value.trim();
+    if (!query) return;
+
+    addMessage(query, "user");
+    input.value = "";
+
+    addMessage("Searching for best deals...", "bot");
+
+    try {
+      const res = await fetch("http://127.0.0.1:5000/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query })
+      });
+      const data = await res.json();
+
+      if (data.length === 0) {
+        addMessage("❌ No results found.", "bot");
+        return;
+      }
+
+      data.forEach((item, index) => {
+        addMessage(`<strong>${index + 1}. ${item.title}</strong><br>
+        Price: ${item.original} (~$${item.price})<br>
+        <a href="${item.url}" target="_blank">View</a>`, "bot");
+      });
+    } catch (e) {
+      console.error(e);
+      addMessage("⚠️ Error fetching data.", "bot");
+    }
+  }
+</script>
+
+</body>
+</html>
